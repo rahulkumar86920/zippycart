@@ -1,5 +1,5 @@
 import { Resend } from "resend";
-import { dotenv } from "dotenv";
+import dotenv from "dotenv";
 dotenv.config();
 
 if (!process.env.Resend_API) {

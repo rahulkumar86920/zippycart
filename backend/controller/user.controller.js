@@ -7,9 +7,10 @@ export async function registerUserController(request, response) {
   try {
     //these are the mandotory information ab the time of user registration
     const { name, email, password } = request.body;
-    if (!name || email || password) {
+    console.log(request.body);
+    if (!name || !email || !password) {
       return response.status(400).json({
-        message: "provide email , name ,password",
+        message: "provide email , name ,password for registration",
         error: true,
         success: false,
       });
@@ -45,12 +46,13 @@ export async function registerUserController(request, response) {
     // here we are sending the email to the user to verify the email
     const verifyEmail = await sendEmail({
       sendTO: email,
-      subject: "Verification email ZippyCart",
+      subject: "Verification Email From ZippyCart",
       html: verifyEmailTemplate({
         name,
         url: verifyEMailUrl,
       }),
     });
+
     // here sending the user created message succefully to the user
     return response.json({
       message: "User Registed Successfylly",
@@ -58,7 +60,6 @@ export async function registerUserController(request, response) {
       success: true,
       data: save,
     });
-    
   } catch (error) {
     return response.status(500).json({
       message: error.message || error,

@@ -29,7 +29,7 @@ const userSchema = new mongoose.Schema(
       default: "",
     },
     verify_email: {
-      tyoe: Boolean,
+      type: Boolean,
       default: false,
     },
     last_login_date: {
@@ -81,5 +81,4 @@ const userSchema = new mongoose.Schema(
 );
 
 const UserModel = mongoose.model("USER", userSchema);
-
-export default UserModel();
+export default UserModel;
