@@ -1,6 +1,7 @@
 import sendEmail from "../config/sendEmail.js";
 import UserModel from "./../models/user.model.js";
 import bcryptjs from "bcryptjs";
+import verifyEmailTemplate from "./../utils/verifyEmailTemplate.js";
 
 export async function registerUserController(request, response) {
   try {
@@ -33,15 +34,31 @@ export async function registerUserController(request, response) {
       email,
       password: hashPassword,
     };
+
     // here saving the new user into the sadabase
     const newUser = UserModel(payload);
     const save = await newUser.save();
-    // 
+
+    // here creating the link where user can click on that verify the email address
+    const verifyEMailUrl = `${process.env.FRONTEND_URL}/verify-email?code=${save?._id}`;
+
+    // here we are sending the email to the user to verify the email
     const verifyEmail = await sendEmail({
       sendTO: email,
       subject: "Verification email ZippyCart",
-      html: "",
+      html: verifyEmailTemplate({
+        name,
+        url: verifyEMailUrl,
+      }),
     });
+    // here sending the user created message succefully to the user
+    return response.json({
+      message: "User Registed Successfylly",
+      error: false,
+      success: true,
+      data: save,
+    });
+    
   } catch (error) {
     return response.status(500).json({
       message: error.message || error,
