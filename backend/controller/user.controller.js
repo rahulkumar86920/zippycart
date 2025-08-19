@@ -110,8 +110,17 @@ export async function verifyEmailController(request, response) {
 export async function loginController(request, response) {
   try {
     // here desturturing the information from the request bodt
-    const { email, password } = request.body;
-    const user = UserModel.findOne({ email });
+    const { email, password } = request.body || {};
+
+    const user = await UserModel.findOne({ email });
+
+    if (!email || !password) {
+      return response.status(400).json({
+        message: "please enter the email and password",
+        error: true,
+        success: false,
+      });
+    }
 
     // here cheking if the user exiest or not in the database
     if (!user) {
@@ -121,11 +130,12 @@ export async function loginController(request, response) {
         success: false,
       });
     }
-    // here checking if the user is active or not
+
+    // here checking id the user is active or not
     if (user.user_status !== "Active") {
       return response.status(400).json({
         message:
-          "User is not active please contact customer support team to activate it ",
+          "You are Inactive please contact customer support for further help",
         error: true,
         success: false,
       });
@@ -150,8 +160,8 @@ export async function loginController(request, response) {
       sameSite: "None",
     };
     // here sending the response cookes back to the user
-    response.cookie("accesstoken", accesstoken, cookieOption);
-    response.cookie("refreshtoken", refreshtoken, cookieOption);
+    response.cookie("accessToken", accesstoken, cookieOption);
+    response.cookie("refreshToken", refreshtoken, cookieOption);
 
     return response.json({
       message: "Login Successfully",
@@ -162,7 +172,32 @@ export async function loginController(request, response) {
         refreshtoken,
       },
     });
-    
+  } catch (error) {
+    return response.status(400).json({
+      message: error.message || error,
+      error: true,
+      success: false,
+    });
+  }
+}
+
+// these are the code for the logout
+export async function logOutController(request, response) {
+  try {
+    const cookieOption = {
+      httpOnly: true,
+      secure: true,
+      sameSite: "None",
+    };
+
+    response.clearCookie("accessToken", cookieOption);
+    response.clearCookie("refreshToken", cookieOption);
+
+    return response.json({
+      message: "Logout successfull",
+      error: false,
+      success: true,
+    });
   } catch (error) {
     return response.status(400).json({
       message: error.message || error,
