@@ -7,6 +7,8 @@ import generateRefreshToken from "./../utils/generateRefreshToken.js";
 import upload from "./../middleware/multer.js";
 import uploadImageCloudinary from "./../utils/uploadimageCloudinary.js";
 import generatedOtp from "../utils/generateOtp.js";
+import forgotPasswordTemplate from "../utils/forgotPasswordTemplate.js";
+import jwt from "jsonwebtoken";
 
 // there code is for the user registration
 export async function registerUserController(request, response) {
@@ -51,7 +53,7 @@ export async function registerUserController(request, response) {
 
     // here we are sending the email to the user to verify the email
     const verifyEmail = await sendEmail({
-      sendTO: email,
+      sendTo: email,
       subject: "Verification Email From ZippyCart",
       html: verifyEmailTemplate({
         name,
@@ -422,6 +424,63 @@ export async function resetpassword(request, response) {
     });
   } catch (error) {
     return response.status(500).json({
+      message: error.message || error,
+      error: true,
+      success: false,
+    });
+  }
+}
+
+// refresh token controller
+export async function refreshToken(request, response) {
+  try {
+    const refreshToken =
+      request.cookies.refreshToken ||
+      request?.headers?.authorization?.split(" ")[1]; /// [ Bearer token]
+
+    if (!refreshToken) {
+      return response.status(401).json({
+        message: "Invalid token",
+        error: true,
+        success: false,
+      });
+    }
+
+    const verifyToken = await jwt.verify(
+      refreshToken,
+      process.env.SECRET_KEY_REFRESH_TOKEN
+    );
+
+    if (!verifyToken) {
+      return response.status(401).json({
+        message: "token is expired",
+        error: true,
+        success: false,
+      });
+    }
+
+    const userId = verifyToken?._id >= verifyToken._id;
+
+    const newAccessToken = await generateAccessToken(userId);
+
+    const cookiesOption = {
+      httpOnly: true,
+      secure: true,
+      sameSite: "None",
+    };
+
+    response.cookie("accessToken", newAccessToken, cookiesOption);
+
+    return response.json({
+      message: "New Access token generated",
+      error: false,
+      success: true,
+      data: {
+        accessToken: newAccessToken,
+      },
+    });
+  } catch (error) {
+    return response.status(400).json({
       message: error.message || error,
       error: true,
       success: false,

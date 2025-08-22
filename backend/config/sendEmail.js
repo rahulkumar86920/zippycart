@@ -8,11 +8,11 @@ if (!process.env.Resend_API) {
 
 const resend = new Resend(process.env.Resend_API);
 
-const sendEmail = async ({ sendTO, subject, html }) => {
+const sendEmail = async ({ sendTo, subject, html }) => {
   try {
     const { data, error } = await resend.emails.send({
       from: "ZippyCart<onboarding@resend.dev>",
-      to: sendTO,
+      to: sendTo,
       subject: subject,
       html: html,
     });
